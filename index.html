@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Ações</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #tickerForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #ticker {
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #008B8B;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        #charts {
+            margin-top: 20px;
+        }
+        .chart-container {
+            margin-bottom: 40px;
+        }
+        @media (max-width: 600px) {
+            #tickerForm {
+                width: 100%;
+            }
+            #ticker {
+                width: 90%;
+            }
+            button {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Análise de Ações</h1>
+    <form id="tickerForm">
+        <input type="text" id="ticker" placeholder="Digite o código da ação (ex: PETR4.SA)">
+        <button type="submit">Analisar</button>
+    </form>
+    <div id="loading">Carregando...</div>
+    <div id="charts"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#tickerForm').on('submit', function(e) {
+                e.preventDefault();
+                $('#loading').show();
+                $('#charts').empty(); // Limpa os gráficos anteriores
+
+                $.ajax({
+                    url: '/process',
+                    method: 'POST',
+                    data: {
+                        ticker: $('#ticker').val()
+                    },
+                    success: function(data) {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            $('#charts').append('<div class="chart-container"><h2>Bollinger Bands (' + data.ticker + ') <a href="#">Download</a></h2>' + data.bollinger[0] + '</div>');
+                            $('#charts').append('<div class="chart-container"><p>' + data.bollinger[1] + '</p></div>');
+
+                            $('#charts').append('<div class="chart-container"><h2>Volume (' + data.ticker + ') <a href="#">Download</a></h2>' + data.volume[0] + '</div>');
+                            $('#charts').append('<div class="chart-container"><p>' + data.volume[1] + '</p></div>');
+
+                            $('#charts').append('<div class="chart-container"><h2>SMA e EMA (' + data.ticker + ') <a href="#">Download</a></h2>' + data.sma_ema[0] + '</div>');
+                            $('#charts').append('<div class="chart-container"><p>' + data.sma_ema[1] + '</p></div>');
+
+                            $('#charts').append('<div class="chart-container"><h2>RSI (' + data.ticker + ') <a href="#">Download</a></h2>' + data.rsi[0] + '</div>');
+                            $('#charts').append('<div class="chart-container"><p>' + data.rsi[1] + '</p></div>');
+                        }
+                        $('#loading').hide();
+                    },
+                    error: function() {
+                        alert('Ocorreu um erro ao processar a solicitação.');
+                        $('#loading').hide();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
